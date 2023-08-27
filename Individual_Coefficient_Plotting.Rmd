@@ -1,0 +1,182 @@
+---
+title: "coef_plotting"
+author: "Poppaea"
+date: "2023-08-24"
+output: html_document
+---
+
+```{r}
+# loading required libraries
+library(haven)
+library(tidyverse)
+```
+
+```{r}
+# setting my filepath
+path <- "C:/Users/poppa/OneDrive - University College London/Research project/Project/MoBA/Results/BMI/Regression results/By Exam/Results"
+```
+
+```{r}
+# extracting a list for all of the files in the filepath (all of the individual level results for BMI)
+files <- list.files(path, pattern = "\\.dta$", full.names = TRUE)
+```
+
+
+```{r}
+# binding all of the files together for one data frame:
+all_data <- bind_rows(lapply(files, read_dta))
+```
+
+
+```{r}
+# creating a list of exams as the unique entries to the dependent variable column:
+exams <- unique(all_data$depvar)
+
+# defining a function to create plots for each exam:
+exam_wise_plot_bmi <- function(exam, show_legend = FALSE) {
+  # filtering the data by exam:
+  data_for_plot <- all_data[all_data$depvar == exam,]
+  
+  # creating plots, using colour to plot each regression method separately
+  plot <- ggplot(data_for_plot, aes(x = regression, y = coef, color = regression)) +
+    # adding the estimate
+    geom_point() +
+    
+    # adding the confidence intervals from the data using the error bar option
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) +
+    
+    # setting a neat formatting:
+    theme_minimal() +
+    
+    # creating titles for each plot, using paste to insert the exam name:
+    labs(title = paste("Coefficient Plot BMI on for", exam),
+         
+         # removing repeating y-acis labels
+         y = "") + 
+    
+    # editing the formatting
+    theme(
+      
+      # removing repeating x-axis labels 
+      axis.text.x = element_blank(),
+      
+      # and titles
+      axis.title.x = element_blank(),
+      
+      # increasing y-axis font size
+      axis.text.y = element_text(size = 10),
+      
+      # and increasing the size of the title
+      plot.title = element_text(size = 14, hjust = 0.5),
+      
+      legend.position = "none"
+    )
+  
+  # saving each plot as a .eps
+  filename <- paste0("bmi_", exam, ".eps")
+  ggsave(filename, plot, device = "eps", width = 7, height = 5) # Adjust the width and height as needed
+  
+  # returning each plot for viewing in R:
+  return(plot)
+}
+
+# and printing one single plot with the legend, to extract the ledeng for use in trellis in latex:
+plot_with_legend_bmi <- function() {
+  # using the first exam here:
+  data_for_plot <- all_data[all_data$depvar == exams[1],]
+  
+  plot <- ggplot(data_for_plot, aes(x = regression, y = coef, color = regression)) +
+    geom_point() +
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) +
+    theme_minimal() +
+    labs(title = "Legend Plot", y = "") + 
+    theme(
+      axis.text.x = element_blank(),
+      axis.title.x = element_blank(),
+      axis.text.y = element_text(size = 10),
+      plot.title = element_text(size = 14, hjust = 0.5),
+      legend.position = "right"
+    )
+  
+  return(plot)
+}
+
+# calling the function to plot with legend
+legend_plot_bmi <- plot_with_legend_bmi()
+
+# saving the legend plot
+ggsave("legend_plot_bmi.eps", legend_plot_bmi, device = "eps", width = 7, height = 5)
+
+# calling the plotting function for each exam
+plots_bmi <- lapply(unique(all_data$depvar), exam_wise_plot_bmi)
+```
+Then doing the same for height:
+```{r}
+path <- "C:/Users/poppa/OneDrive - University College London/Research project/Project/MoBA/Results/Height/Regression results/By Exam/Results datasets"
+```
+
+```{r}
+files <- list.files(path, pattern = "\\.dta$", full.names = TRUE)
+```
+
+
+```{r}
+all_data <- bind_rows(lapply(files, read_dta))
+```
+
+
+```{r}
+exams <- unique(all_data$depvar)
+
+exam_wise_plot_hei <- function(exam, show_legend = FALSE) {
+  data_for_plot <- all_data[all_data$depvar == exam,]
+  
+  plot <- ggplot(data_for_plot, aes(x = regression, y = coef, color = regression)) +
+    geom_point() +
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) +
+    theme_minimal() +
+    labs(title = paste("Coefficient Plot Height on for", exam),
+         y = "") + 
+    theme(
+      axis.text.x = element_blank(),
+      axis.title.x = element_blank(),
+      axis.text.y = element_text(size = 10),
+      plot.title = element_text(size = 14, hjust = 0.5),
+      legend.position = "none"
+    )
+  
+  filename <- paste0(path, "/height_", exam, ".eps")
+  ggsave(filename, plot, device = "eps", width = 7, height = 5)
+  
+  return(plot)
+}
+
+plot_with_legend_hei <- function() {
+  # using the first exam here:
+  data_for_plot <- all_data[all_data$depvar == exams[1],]
+  
+  plot <- ggplot(data_for_plot, aes(x = regression, y = coef, color = regression)) +
+    geom_point() +
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) +
+    theme_minimal() +
+    labs(title = "Legend Plot", y = "") + 
+    theme(
+      axis.text.x = element_blank(),
+      axis.title.x = element_blank(),
+      axis.text.y = element_text(size = 10),
+      plot.title = element_text(size = 14, hjust = 0.5),
+      legend.position = "right"
+    )
+  
+ # return(plot)
+}
+
+# calling the function to plot with legend
+legend_plot_hei <- plot_with_legend_hei()
+
+# saving the legend plot
+ggsave("legend_plot_hei.eps", legend_plot_hei, device = "eps", width = 7, height = 5)
+
+# calling the plotting function for each exam
+plots_hei <- lapply(unique(all_data$depvar), exam_wise_plot_hei)
+```
