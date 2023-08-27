@@ -463,6 +463,3 @@ ggsave("plot_height_on_educational_attainment.png", plot_height_on_ed, width = 1
 ggsave("plot_educational_attainment_on_bmi.png", plot_ed_on_bmi, width = 10, height = 6)
 ggsave("plot_educational_attainment_on_height.png", plot_ed_on_height, width = 10, height = 6)
 ```
-
-print(plot_bmi_on_ed)
-
