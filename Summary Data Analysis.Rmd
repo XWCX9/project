@@ -85,10 +85,10 @@ un_hei_ed_res <- mr(un_hei_ed_har, method_list = c("mr_two_sample_ml"))
 
 # extracting the estimates and their standard errors:
 un_bmi_ed_beta <- un_bmi_ed_res$b
-un_bmi_ed_se <- un_bmi_ed_res$se
-
 un_hei_ed_beta <- un_hei_ed_res$b
+
 un_hei_ed_se <- un_hei_ed_res$se
+un_bmi_ed_se <- un_bmi_ed_res$se
 
 # deriving the instrument F-statistic
 un_bmi_ed_f_stat <- (un_bmi_ed_beta/un_bmi_ed_se)^2
@@ -96,9 +96,9 @@ un_hei_ed_f_stat <- (un_hei_ed_beta/un_hei_ed_se)^2
 
 # computing 95% confidence intervals:
 un_bmi_ed_lower <- un_bmi_ed_beta - 1.96 * un_bmi_ed_se
-un_bmi_ed_upper <- un_bmi_ed_beta + 1.96 * un_bmi_ed_se
-
 un_hei_ed_lower <- un_hei_ed_beta - 1.96 * un_hei_ed_se
+
+un_bmi_ed_upper <- un_bmi_ed_beta + 1.96 * un_bmi_ed_se
 un_hei_ed_upper <- un_hei_ed_beta + 1.96 * un_hei_ed_se
 ```
 
@@ -117,10 +117,11 @@ un_ed_bmi_f_stat <- (un_ed_bmi_beta/un_ed_bmi_se)^2
 un_ed_hei_f_stat <- (un_ed_hei_beta/un_ed_hei_se)^2
 
 un_ed_bmi_lower <- un_ed_bmi_beta - 1.96 * un_ed_bmi_se
-un_ed_bmi_upper <- un_ed_bmi_beta + 1.96 * un_ed_bmi_se
-
 un_ed_hei_lower <- un_ed_hei_beta - 1.96 * un_ed_hei_se
+
+un_ed_bmi_upper <- un_ed_bmi_beta + 1.96 * un_ed_bmi_se
 un_ed_hei_upper <- un_ed_hei_beta + 1.96 * un_ed_hei_se
+
 ```
 
 
@@ -436,30 +437,52 @@ print(latex_code, type = "latex", file = "")
 
 
 ```{r}
+# for checking: keeping only the data which is going in my first direction of causation:
+all_results <- all_results[all_results$Exposure != "Education", ]
+
 # defining a function to create coefficient plots
-coeff_plot <- function(data, effect_title) {
-  ggplot(data[data$Effect == effect_title, ], aes(x = Analysis_Type, y = Estimate, ymin = Lower_CI, ymax = Upper_CI, color = Analysis_Type)) +
-    geom_pointrange(position = position_dodge(width = 0.3), size = 0.5) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          legend.position = "none") + # Remove the legend
+coeff_plot <- function(data, exposure, show_legend = FALSE) {
+  filtered_data <- data[data$Exposure == exposure, ]
+  
+  plot <- ggplot(filtered_data, aes(x = Sample, y = `Estimated Coefficient`, color = Sample)) +
+    geom_point(position = position_dodge(width = 0.3)) +
+    geom_errorbar(aes(ymin = `Lower 95% CI`, ymax = `Upper 95% CI`), width = 0.2, position = position_dodge(width = 0.3)) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    theme_minimal() +
     labs(
-      title = paste("Coefficient Plots:", gsub("EA", "Educational Attainment", effect_title)),
-      x = "Analysis Type",
+      title = paste("Coefficient Plots for:", exposure),
+      x = "",
       y = "Estimate",
       caption = "Error bars represent 95% confidence intervals"
     ) +
-    scale_color_manual(values = c("Unrelated" = "grey", "Within-family" = "pink"))
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.title.x = element_blank(),
+      axis.text.y = element_text(size = 10),
+      plot.title = element_text(size = 14, hjust = 0.5),
+      legend.position = ifelse(show_legend, "right", "none")
+    ) +
+    scale_color_manual(values = c("Unrelated" = "coral1", "Within family" = "springgreen4"))
+  
+  return(plot)
 }
 
 # applying the function to create plots for each regression
-plot_bmi_on_ed <- coeff_plot(results, "BMI on ED")
-plot_height_on_ed <- coeff_plot(results, "Height on ED")
-plot_ed_on_bmi <- coeff_plot(results, "ED on BMI")
-plot_ed_on_height <- coeff_plot(results, "ED on Height")
+plot_bmi_on_ed <- coeff_plot(all_results, "BMI")
+plot_height_on_ed <- coeff_plot(all_results, "Height")
 
 # saving
 ggsave("plot_bmi_on_educational_attainment.png", plot_bmi_on_ed, width = 10, height = 6)
 ggsave("plot_height_on_educational_attainment.png", plot_height_on_ed, width = 10, height = 6)
-ggsave("plot_educational_attainment_on_bmi.png", plot_ed_on_bmi, width = 10, height = 6)
-ggsave("plot_educational_attainment_on_height.png", plot_ed_on_height, width = 10, height = 6)
+#ggsave("plot_educational_attainment_on_bmi.png", plot_ed_on_bmi, width = 10, height = 6)
+#ggsave("plot_educational_attainment_on_height.png", plot_ed_on_height, width = 10, height = 6)
+
+print(plot_bmi_on_ed)
+print(plot_height_on_ed)
 ```
+
+```{r}
+print(all_results)
+```
+
+Standard errors for height unrelated around 3x as big as those for the wf analysis. But order seems correct for estimated coefficients.
