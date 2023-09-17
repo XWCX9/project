@@ -26,6 +26,20 @@ library(gridExtra)
 ```
 
 ```{r}
+factor(all_height_data$regression, 
+                                  levels = c("phenotypic", "mr_unrel", "mr_unrel_PCs", "mr_wf", "mr_wf_PCs"))
+
+# 2. Merge this mapping into all_bmi_data
+mapping_df <- data.frame(
+  depvar = c("zNPREG05", "zNPENG05", "zNPLES05", "zNPENG08", "zNPLES08", "zNPREG08", "zNPLES09", "zNPREG09"),
+  ExamDescription = c("Grade 5 Numeracy", "Grade 5 English", "Grade 5 Reading",
+                      "Grade 8 English", "Grade 8 Reading", "Grade 8 Numeracy",
+                      "Grade 9 Reading", "Grade 9 Numeracy")
+)
+
+all_height_data <- merge(all_height_data, mapping_df, by = "depvar", all.x = TRUE)
+
+
 exam_wise_plot_height <- function(exam) {
   # Filtering the data by exam:
   data_for_plot <- all_height_data[all_height_data$depvar == exam,]
