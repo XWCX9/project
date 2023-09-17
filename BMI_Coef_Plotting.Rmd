@@ -27,8 +27,7 @@ library(gridExtra)
 
 ```{r}
 
-factor(all_bmi_data$regression, 
-                                  levels = c("phenotypic", "mr_unrel", "mr_unrel_PCs", "mr_wf", "mr_wf_PCs"))
+all_bmi_data$regression <- factor(all_bmi_data$regression, levels = c("phenotypic", "mr_unrel", "mr_unrel_PCs", "mr_wf", "mr_wf_PCs"))
 
 # 2. Merge this mapping into all_bmi_data
 mapping_df <- data.frame(
@@ -39,7 +38,6 @@ mapping_df <- data.frame(
 )
 
 all_bmi_data <- merge(all_bmi_data, mapping_df, by = "depvar", all.x = TRUE)
-
 
 exam_wise_plot_bmi <- function(exam) {
   # Filtering the data by exam:
